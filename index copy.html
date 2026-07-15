@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>键盘配置工具 - 智能灯光索引</title>
+    <title>键盘配置工具 - 增强版</title>
     <style>
         * {
             box-sizing: border-box;
@@ -232,6 +232,11 @@
             color: #aaa;
             margin-top: 4px;
         }
+        .sub-section {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #444;
+        }
     </style>
 </head>
 <body>
@@ -239,16 +244,15 @@
 
 <script>
     // ==================== 单位转换配置 ====================
-    const U_TO_PX = 50;           // 1u = 50px
-    const KEY_SPACING_U = 0.25;   // 按键间距 0.25u
-    const ROW_SPACING_U = 0.25;   // 行间距 0.25u
-    const ROW_HEIGHT_U = 1;       // 行高 1u
-    const MOVE_STEP_U = 0.25;     // 宽度/偏移步进 0.25u
+    const U_TO_PX = 50;
+    const KEY_SPACING_U = 0.25;
+    const ROW_SPACING_U = 0.25;
+    const ROW_HEIGHT_U = 1;
+    const MOVE_STEP_U = 0.25;
     
     function uToPx(u) { return u * U_TO_PX; }
     function pxToU(px) { return Math.round((px / U_TO_PX) * 100) / 100; }
     
-    // ----------------------------- 辅助函数 -----------------------------
     function generateId() {
         return 'key-' + Date.now() + '-' + Math.random().toString(36).substr(2, 8);
     }
@@ -328,55 +332,45 @@
         "QMK_KB_2P4G_PAIR", "QMK_KB_BLE1_PAIR", "QMK_KB_BLE2_PAIR", "QMK_KB_BLE3_PAIR", "LVGL_NEXT", "LVGL_PREV", "LVGL_ENT"
     ];
 
-    // 预设布局 (60% 基础，使用行式布局)
-    function getPresetLayout() {
-        const rowsData = [
-            { row: 0, keys: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] },
-            { row: 1, keys: [1.1, 1, 1, 1, 1, 1, 1, 1, 1, 1] },
-            { row: 2, keys: [1.25, 1, 1, 1, 1, 1, 1, 1, 1, 1.25] },
-            { row: 3, keys: [5.6] }
-        ];
-        
-        const keyFunctions = [
-            ["KC_ESC", "KC_GRV", "KC_NO", "KC_NO"],
-            ["KC_1", "KC_F1", "KC_NO", "KC_NO"],
-            ["KC_2", "KC_F2", "KC_NO", "KC_NO"],
-            ["KC_3", "KC_F3", "KC_NO", "KC_NO"],
-            ["KC_4", "KC_F4", "KC_NO", "KC_NO"],
-            ["KC_5", "KC_F5", "KC_NO", "KC_NO"],
-            ["KC_6", "KC_F6", "KC_NO", "KC_NO"],
-            ["KC_7", "KC_F7", "KC_NO", "KC_NO"],
-            ["KC_8", "KC_F8", "KC_NO", "KC_NO"],
-            ["KC_9", "KC_F9", "KC_NO", "KC_NO"],
-            ["KC_0", "KC_F10", "KC_NO", "KC_NO"],
-            ["KC_Q", "KC_1", "KC_NO", "KC_NO"],
-            ["KC_W", "KC_2", "KC_NO", "KC_NO"],
-            ["KC_E", "KC_3", "KC_NO", "KC_NO"],
-            ["KC_R", "KC_4", "KC_NO", "KC_NO"],
-            ["KC_T", "KC_5", "KC_NO", "KC_NO"],
-            ["KC_Y", "KC_6", "KC_NO", "KC_NO"],
-            ["KC_U", "KC_7", "KC_NO", "KC_NO"],
-            ["KC_I", "KC_8", "KC_NO", "KC_NO"],
-            ["KC_O", "KC_9", "KC_NO", "KC_NO"],
-            ["KC_P", "KC_0", "KC_NO", "KC_NO"],
-            ["KC_A", "KC_NO", "KC_NO", "KC_NO"],
-            ["KC_S", "KC_NO", "KC_NO", "KC_NO"],
-            ["KC_D", "KC_NO", "KC_NO", "KC_NO"],
-            ["KC_F", "KC_NO", "KC_NO", "KC_NO"],
-            ["KC_G", "KC_NO", "KC_NO", "KC_NO"],
-            ["KC_H", "KC_NO", "KC_NO", "KC_NO"],
-            ["KC_J", "KC_NO", "KC_NO", "KC_NO"],
-            ["KC_K", "KC_NO", "KC_NO", "KC_NO"],
-            ["KC_L", "KC_NO", "KC_NO", "KC_NO"],
-            ["KC_SPACE", "KC_ENTER", "KC_NO", "KC_NO"]
-        ];
-        
+    // ==================== 预设布局 ====================
+    const PRESET_LAYOUTS = {
+        "100%": [
+            { row: 0, keys: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] },
+            { row: 1, keys: [1.5,1,1,1,1,1,1,1,1,1,1,1,1,1.5] },
+            { row: 2, keys: [1.75,1,1,1,1,1,1,1,1,1,1,1,1.75] },
+            { row: 3, keys: [2.25,1,1,1,1,1,1,1,1,1,1,2.75] },
+            { row: 4, keys: [1.25,1.25,1.25,6.25,1.25,1.25,1.25,1.25] }
+        ],
+        "80%": [
+            { row: 0, keys: [1,1,1,1,1,1,1,1,1,1,1,1,1] },
+            { row: 1, keys: [1.5,1,1,1,1,1,1,1,1,1,1,1,1.5] },
+            { row: 2, keys: [1.75,1,1,1,1,1,1,1,1,1,1,1.75] },
+            { row: 3, keys: [2.25,1,1,1,1,1,1,1,1,1,2.75] },
+            { row: 4, keys: [1.25,1.25,1.25,6.25,1.25,1.25,1.25] }
+        ],
+        "70%": [
+            { row: 0, keys: [1,1,1,1,1,1,1,1,1,1,1,1] },
+            { row: 1, keys: [1.5,1,1,1,1,1,1,1,1,1,1,1.5] },
+            { row: 2, keys: [1.75,1,1,1,1,1,1,1,1,1,1.75] },
+            { row: 3, keys: [2.25,1,1,1,1,1,1,1,1,2.75] },
+            { row: 4, keys: [1.25,1.25,6.25,1.25,1.25,1.25] }
+        ],
+        "60%": [
+            { row: 0, keys: [1,1,1,1,1,1,1,1,1,1,1,1,1] },
+            { row: 1, keys: [1.5,1,1,1,1,1,1,1,1,1,1,1.5] },
+            { row: 2, keys: [1.75,1,1,1,1,1,1,1,1,1.75] },
+            { row: 3, keys: [2.25,1,1,1,1,1,1,2.75] },
+            { row: 4, keys: [1.25,1.25,6.25,1.25,1.25] }
+        ]
+    };
+
+    function generateKeysFromLayout(layoutName) {
+        const layout = PRESET_LAYOUTS[layoutName];
+        if (!layout) return [];
         let keys = [];
         let orderCounter = 0;
-        
-        rowsData.forEach((rowData) => {
+        layout.forEach(rowData => {
             rowData.keys.forEach((widthU, idx) => {
-                const funcIndex = orderCounter;
                 keys.push({
                     id: generateId(),
                     row: rowData.row,
@@ -387,7 +381,7 @@
                     rgbIndex: orderCounter,
                     matrixRow: rowData.row,
                     matrixCol: idx,
-                    layers: keyFunctions[funcIndex] || ["KC_NO", "KC_NO", "KC_NO", "KC_NO"]
+                    layers: ["KC_NO", "KC_NO", "KC_NO", "KC_NO"]
                 });
                 orderCounter++;
             });
@@ -395,36 +389,46 @@
         return keys;
     }
 
-    let keys = getPresetLayout();
+    let keys = generateKeysFromLayout("60%");
     let selectedKeyIds = new Set();
     let activeLayer = 0;
+    
+    // 硬件配置（扩展）
     let hwConfig = {
-        rowCount: 5, colCount: 14, rgbLedCount: 64, sideLedEnabled: false, sideLedCount: 0,
-        logoLedEnabled: false, logoLedCount: 0, hasScreen: false, usbDeviceName: "Custom Keyboard",
-        pid: "0x6060", vid: "0xFEED", version: "1.0.0", bluetoothName: "BT_KB",
-        hasModeSwitch: false, maxBrightness: 255, brightnessLevels: 5, speedLevels: 5
+        rowCount: 5, colCount: 14, rgbLedCount: 64,
+        sideLedEnabled: false, sideLedCount: 0,
+        logoLedEnabled: false, logoLedCount: 0,
+        hasScreen: false,
+        usbDeviceName: "Custom Keyboard",
+        pid: "0x6060", vid: "0xFEED", version: "1.0.0",
+        bluetoothName1: "BT_KB1",
+        bluetoothName2: "BT_KB2",
+        bluetoothName3: "BT_KB3",
+        bluetoothId: "0x0001",
+        hasModeSwitch: false,
+        maxBrightness: 255, brightnessLevels: 5, speedLevels: 5,
+        // 侧灯/Logo灯独立配置
+        sideLedMaxBrightness: 255, sideLedBrightnessLevels: 5, sideLedSpeedLevels: 5,
+        sideLedDefaultBrightness: 128, sideLedDefaultSpeed: 2,
+        logoLedMaxBrightness: 255, logoLedBrightnessLevels: 5, logoLedSpeedLevels: 5,
+        logoLedDefaultBrightness: 128, logoLedDefaultSpeed: 2
     };
 
     let keyboardGridDiv, selectedKeyEditorDiv, hwConfigForm;
 
-    // ----------------------------- 重新分配所有灯光索引 (按 row, order) -----------------------------
     function reassignRgbIndices() {
-        // 按键排序：先按行，再按 order
         const sortedKeys = [...keys].sort((a, b) => {
             if (a.row !== b.row) return a.row - b.row;
             return a.order - b.order;
         });
-        // 重新分配索引 0,1,2,...
         for (let i = 0; i < sortedKeys.length; i++) {
             sortedKeys[i].rgbIndex = i;
         }
-        // 由于我们修改了 keys 中的对象引用，所以 keys 已经更新
         renderKeyboard();
         renderKeyEditor();
         alert(`已重新分配 ${keys.length} 个按键的灯光索引，按行/列顺序。`);
     }
 
-    // ----------------------------- 布局计算函数 (包含偏移) -----------------------------
     function calculateKeyPositions() {
         const rowsMap = new Map();
         keys.forEach(key => {
@@ -434,11 +438,9 @@
         for (let [row, keyList] of rowsMap.entries()) {
             keyList.sort((a, b) => a.order - b.order);
         }
-        
         const sortedRows = Array.from(rowsMap.keys()).sort((a,b) => a-b);
         const positions = new Map();
         let currentY = 0;
-        
         for (let rowIdx of sortedRows) {
             const keyList = rowsMap.get(rowIdx);
             let currentX = 0;
@@ -456,21 +458,6 @@
                 currentX += widthPx + uToPx(KEY_SPACING_U);
             }
             currentY += uToPx(ROW_HEIGHT_U) + uToPx(ROW_SPACING_U);
-
-            //for (let i = 0; i < keyList.length; i++) {
-            //    const key = keyList[i];
-            //    const widthPx = key.widthU;
-            //    const heightPx = key.heightU;
-            //    const offsetXPx = key.offsetX;
-            //    positions.set(key.id, {
-            //        x: currentX + offsetXPx,
-            //        y: currentY,
-            //        width: widthPx,
-            //        height: heightPx
-            //    });
-            //    currentX += widthPx + KEY_SPACING_U;
-            //}
-            //currentY += ROW_HEIGHT_U + ROW_SPACING_U;
         }
         return positions;
     }
@@ -490,19 +477,15 @@
             keyDiv.style.left = pos.x + 'px';
             keyDiv.style.top = pos.y + 'px';
             keyDiv.setAttribute('data-id', key.id);
-            
             const currentFunc = key.layers[activeLayer] || "???";
             const layerSpan = document.createElement('div');
             layerSpan.className = 'layer-func';
             layerSpan.textContent = currentFunc;
-            
             const metaSpan = document.createElement('div');
             metaSpan.className = 'meta-info';
             metaSpan.innerHTML = `<span>RGB:${key.rgbIndex}</span><span>C:${key.matrixCol}/R:${key.matrixRow}</span>`;
-            
             keyDiv.appendChild(layerSpan);
             keyDiv.appendChild(metaSpan);
-            
             keyDiv.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (e.ctrlKey || e.metaKey) {
@@ -520,7 +503,6 @@
         if (selectedKeyIds.size === 0) renderKeyEditor();
     }
 
-    // 批量修改宽度
     function batchChangeWidth(deltaU) {
         if (selectedKeyIds.size === 0) { alert('请先选中按键'); return; }
         for (let id of selectedKeyIds) {
@@ -535,7 +517,6 @@
         renderKeyEditor();
     }
 
-    // 批量修改偏移量
     function batchChangeOffset(deltaU) {
         if (selectedKeyIds.size === 0) { alert('请先选中按键'); return; }
         for (let id of selectedKeyIds) {
@@ -548,7 +529,6 @@
         renderKeyEditor();
     }
 
-    // 交换顺序 (左右移动顺序)
     function batchMoveOrder(delta) {
         if (selectedKeyIds.size === 0) { alert('请先选中按键'); return; }
         const keysByRow = new Map();
@@ -594,7 +574,6 @@
         renderKeyEditor();
     }
 
-    // 上下移动行
     function batchMoveRow(delta) {
         if (selectedKeyIds.size === 0) { alert('请先选中按键'); return; }
         const newRows = new Set();
@@ -628,7 +607,6 @@
         renderKeyEditor();
     }
 
-    // 【核心修改】在选中按键右侧添加新键
     function addKeyAfterSelected() {
         if (selectedKeyIds.size === 0) {
             alert('请先选中一个按键，以便在其右侧添加新按键');
@@ -637,15 +615,12 @@
         const selectedId = Array.from(selectedKeyIds)[0];
         const selectedKey = keys.find(k => k.id === selectedId);
         if (!selectedKey) return;
-        
         const { row, order } = selectedKey;
-        // 将该行中 order 大于当前选中按键的，全部 order + 1
         keys.forEach(k => {
             if (k.row === row && k.order > order) {
                 k.order++;
             }
         });
-        // 计算新的灯光索引（当前最大值+1）
         const maxRgb = keys.reduce((max, k) => Math.max(max, k.rgbIndex), 0);
         const newKey = {
             id: generateId(),
@@ -661,49 +636,17 @@
         };
         keys.push(newKey);
         const firstRgbIndex = Math.min(...keys.filter(k => k.row === row).map(k => k.rgbIndex));
-        // 重新排序该行 order，确保连续
         const rowKeys = keys.filter(k => k.row === row).sort((a,b) => a.order - b.order);
         for (let i = 0; i < rowKeys.length; i++) {
             rowKeys[i].order = i;
             rowKeys[i].matrixCol = i;
             rowKeys[i].rgbIndex = firstRgbIndex + i;
         }
-        
         renderKeyboard();
         selectedKeyIds.clear();
         selectedKeyIds.add(newKey.id);
         renderKeyEditor();
     }
-
-    function addKeyToRow(row) {
-        const rowKeys = keys.filter(k => k.row === row);
-        const newOrder = rowKeys.length;
-        // 计算当前最大 rgbIndex + 1
-        let maxRgb = 0;
-        for (let k of keys) {
-            if (k.rgbIndex > maxRgb) maxRgb = k.rgbIndex;
-        }
-        const newRgbIndex = maxRgb + 1;
-        const newKey = {
-            id: generateId(),
-            row: row,
-            order: newOrder,
-            widthU: 1,
-            heightU: 1,
-            offsetX: 0,
-            rgbIndex: newRgbIndex,
-            matrixRow: row,
-            matrixCol: newOrder,
-            layers: ["KC_NO", "KC_NO", "KC_NO", "KC_NO"]
-        };
-        keys.push(newKey);
-        renderKeyboard();
-        selectedKeyIds.clear();
-        selectedKeyIds.add(newKey.id);
-        renderKeyEditor();
-    }
-
-    
 
     function renderKeyEditor() {
         if (!selectedKeyEditorDiv) return;
@@ -714,13 +657,10 @@
             </div>`;
             return;
         }
-        
         const selectedKeys = Array.from(selectedKeyIds).map(id => keys.find(k => k.id === id)).filter(k => k);
         if (selectedKeys.length === 0) return;
-        
         const avgWidthU = selectedKeys.reduce((sum, k) => sum + k.widthU, 0) / selectedKeys.length;
         const avgOffsetU = selectedKeys.reduce((sum, k) => sum + k.offsetX, 0) / selectedKeys.length;
-        
         const keycodeDatalistId = "keycode-suggest";
         let html = `
             <div class="config-section key-editor">
@@ -768,7 +708,6 @@
                 <div class="multi-select-hint">提示：Ctrl+点击多选，偏移量微调位置，交换顺序调整排列</div>
             </div>
         `;
-        
         if (selectedKeys.length === 1) {
             const key = selectedKeys[0];
             html += `
@@ -801,9 +740,7 @@
             }
             html += `</div>`;
         }
-        
         selectedKeyEditorDiv.innerHTML = html;
-        
         document.getElementById('batchWidthInc')?.addEventListener('click', () => batchChangeWidth(MOVE_STEP_U));
         document.getElementById('batchWidthDec')?.addEventListener('click', () => batchChangeWidth(-MOVE_STEP_U));
         document.getElementById('batchOffsetInc')?.addEventListener('click', () => batchChangeOffset(MOVE_STEP_U));
@@ -813,7 +750,6 @@
         document.getElementById('batchMoveUp')?.addEventListener('click', () => batchMoveRow(-1));
         document.getElementById('batchMoveDown')?.addEventListener('click', () => batchMoveRow(1));
         document.getElementById('deleteSelectedBtn')?.addEventListener('click', deleteSelectedKeys);
-        
         if (selectedKeys.length === 1) {
             const key = selectedKeys[0];
             const widthInput = document.getElementById('singleWidthU');
@@ -822,59 +758,19 @@
             const colInput = document.getElementById('singleMatrixCol');
             const rowInput = document.getElementById('singleMatrixRow');
             const layerInputs = [];
-            for (let l = 0; l < 4; l++) {
-                layerInputs.push(document.getElementById(`singleLayer${l}`));
-            }
-            
-            const updateWidth = () => {
-                let val = parseFloat(widthInput.value);
-                if (!isNaN(val) && val >= 0.25) {
-                    key.widthU = Math.round(val * 100) / 100;
-                    renderKeyboard();
-                }
-            };
-            const updateOffset = () => {
-                let val = parseFloat(offsetInput.value);
-                if (!isNaN(val)) {
-                    key.offsetX = Math.round(val * 100) / 100;
-                    renderKeyboard();
-                }
-            };
-            const updateRgb = () => {
-                let val = parseInt(rgbInput.value);
-                if (!isNaN(val)) {
-                    key.rgbIndex = val;
-                    renderKeyboard();
-                }
-            };
-            const updateCol = () => {
-                let val = parseInt(colInput.value);
-                if (!isNaN(val)) {
-                    key.matrixCol = val;
-                    renderKeyboard();
-                }
-            };
-            const updateRow = () => {
-                let val = parseInt(rowInput.value);
-                if (!isNaN(val)) {
-                    key.matrixRow = val;
-                    renderKeyboard();
-                }
-            };
-            const updateLayer = (layerIdx) => {
-                let val = layerInputs[layerIdx].value;
-                key.layers[layerIdx] = val;
-                renderKeyboard();
-            };
-            
+            for (let l = 0; l < 4; l++) layerInputs.push(document.getElementById(`singleLayer${l}`));
+            const updateWidth = () => { let val = parseFloat(widthInput.value); if (!isNaN(val) && val >= 0.25) { key.widthU = Math.round(val * 100) / 100; renderKeyboard(); } };
+            const updateOffset = () => { let val = parseFloat(offsetInput.value); if (!isNaN(val)) { key.offsetX = Math.round(val * 100) / 100; renderKeyboard(); } };
+            const updateRgb = () => { let val = parseInt(rgbInput.value); if (!isNaN(val)) { key.rgbIndex = val; renderKeyboard(); } };
+            const updateCol = () => { let val = parseInt(colInput.value); if (!isNaN(val)) { key.matrixCol = val; renderKeyboard(); } };
+            const updateRow = () => { let val = parseInt(rowInput.value); if (!isNaN(val)) { key.matrixRow = val; renderKeyboard(); } };
+            const updateLayer = (layerIdx) => { let val = layerInputs[layerIdx].value; key.layers[layerIdx] = val; renderKeyboard(); };
             widthInput?.addEventListener('input', updateWidth);
             offsetInput?.addEventListener('input', updateOffset);
             rgbInput?.addEventListener('input', updateRgb);
             colInput?.addEventListener('input', updateCol);
             rowInput?.addEventListener('input', updateRow);
-            layerInputs.forEach((input, idx) => {
-                input?.addEventListener('input', () => updateLayer(idx));
-            });
+            layerInputs.forEach((input, idx) => input?.addEventListener('input', () => updateLayer(idx)));
         }
     }
     
@@ -895,29 +791,88 @@
                     <div class="form-field"><label>版本号</label><input id="version" value="${hwConfig.version}"></div>
                 </div>
                 <div class="form-row">
-                    <div class="form-field"><label>蓝牙设备名</label><input id="bluetoothName" value="${hwConfig.bluetoothName}"></div>
+                    <div class="form-field"><label>蓝牙名称 1</label><input id="bluetoothName1" value="${hwConfig.bluetoothName1}"></div>
+                    <div class="form-field"><label>蓝牙名称 2</label><input id="bluetoothName2" value="${hwConfig.bluetoothName2}"></div>
+                    <div class="form-field"><label>蓝牙名称 3</label><input id="bluetoothName3" value="${hwConfig.bluetoothName3}"></div>
+                    <div class="form-field"><label>蓝牙 ID (hex)</label><input id="bluetoothId" value="${hwConfig.bluetoothId}" placeholder="0x0001"></div>
+                </div>
+                <div class="form-row">
                     <div class="form-field"><label>模式切换开关</label><select id="hasModeSwitch"><option value="true" ${hwConfig.hasModeSwitch ? 'selected' : ''}>支持</option><option value="false" ${!hwConfig.hasModeSwitch ? 'selected' : ''}>不支持</option></select></div>
+                    <div class="form-field"><label>支持屏幕</label><select id="hasScreen"><option value="true" ${hwConfig.hasScreen ? 'selected' : ''}>是</option><option value="false" ${!hwConfig.hasScreen ? 'selected' : ''}>否</option></select></div>
                 </div>
                 <div class="form-row">
                     <div class="form-field"><label>R线数量</label><input type="number" id="rowCount" value="${hwConfig.rowCount}"></div>
                     <div class="form-field"><label>C线数量</label><input type="number" id="colCount" value="${hwConfig.colCount}"></div>
                     <div class="form-field"><label>RGB灯珠总数</label><input type="number" id="rgbLedCount" value="${hwConfig.rgbLedCount}"></div>
                 </div>
-                <div class="form-row">
-                    <div class="form-field"><label>侧灯支持</label><select id="sideLedEnabled"><option value="true" ${hwConfig.sideLedEnabled ? 'selected' : ''}>启用</option><option value="false" ${!hwConfig.sideLedEnabled ? 'selected' : ''}>禁用</option></select></div>
-                    <div class="form-field" id="sideLedCountField" style="${hwConfig.sideLedEnabled ? '' : 'display:none'}"><label>侧灯数量</label><input type="number" id="sideLedCount" value="${hwConfig.sideLedCount}"></div>
-                    <div class="form-field"><label>Logo灯支持</label><select id="logoLedEnabled"><option value="true" ${hwConfig.logoLedEnabled ? 'selected' : ''}>启用</option><option value="false" ${!hwConfig.logoLedEnabled ? 'selected' : ''}>禁用</option></select></div>
-                    <div class="form-field" id="logoLedCountField" style="${hwConfig.logoLedEnabled ? '' : 'display:none'}"><label>Logo灯数量</label><input type="number" id="logoLedCount" value="${hwConfig.logoLedCount}"></div>
-                    <div class="form-field"><label>支持屏幕</label><select id="hasScreen"><option value="true" ${hwConfig.hasScreen ? 'selected' : ''}>是</option><option value="false" ${!hwConfig.hasScreen ? 'selected' : ''}>否</option></select></div>
-                </div>
+            </div>
+            <div class="config-section">
+                <h3>💡 主灯配置</h3>
                 <div class="form-row">
                     <div class="form-field"><label>最大亮度</label><input type="number" id="maxBrightness" value="${hwConfig.maxBrightness}"></div>
                     <div class="form-field"><label>亮度档位</label><input type="number" id="brightnessLevels" value="${hwConfig.brightnessLevels}"></div>
                     <div class="form-field"><label>速度档位</label><input type="number" id="speedLevels" value="${hwConfig.speedLevels}"></div>
                 </div>
-                <button id="saveHwBtn" style="margin-top:8px; background:#2c6e2c;">💾 保存硬件配置</button>
             </div>
+            <div class="config-section">
+                <h3>🎨 侧灯配置</h3>
+                <div class="form-row">
+                    <div class="form-field"><label>启用侧灯</label><select id="sideLedEnabled"><option value="true" ${hwConfig.sideLedEnabled ? 'selected' : ''}>启用</option><option value="false" ${!hwConfig.sideLedEnabled ? 'selected' : ''}>禁用</option></select></div>
+                    <div class="form-field" id="sideLedCountField" style="${hwConfig.sideLedEnabled ? '' : 'display:none'}"><label>侧灯数量</label><input type="number" id="sideLedCount" value="${hwConfig.sideLedCount}"></div>
+                </div>
+                <div id="sideLedConfig" style="${hwConfig.sideLedEnabled ? '' : 'display:none'}">
+                    <div class="form-row">
+                        <div class="form-field"><label>最大亮度</label><input type="number" id="sideLedMaxBrightness" value="${hwConfig.sideLedMaxBrightness}"></div>
+                        <div class="form-field"><label>亮度档位</label><input type="number" id="sideLedBrightnessLevels" value="${hwConfig.sideLedBrightnessLevels}"></div>
+                        <div class="form-field"><label>速度档位</label><input type="number" id="sideLedSpeedLevels" value="${hwConfig.sideLedSpeedLevels}"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field"><label>默认亮度</label><input type="number" id="sideLedDefaultBrightness" value="${hwConfig.sideLedDefaultBrightness}"></div>
+                        <div class="form-field"><label>默认速度</label><input type="number" id="sideLedDefaultSpeed" value="${hwConfig.sideLedDefaultSpeed}"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="config-section">
+                <h3>🔆 Logo灯配置</h3>
+                <div class="form-row">
+                    <div class="form-field"><label>启用Logo灯</label><select id="logoLedEnabled"><option value="true" ${hwConfig.logoLedEnabled ? 'selected' : ''}>启用</option><option value="false" ${!hwConfig.logoLedEnabled ? 'selected' : ''}>禁用</option></select></div>
+                    <div class="form-field" id="logoLedCountField" style="${hwConfig.logoLedEnabled ? '' : 'display:none'}"><label>Logo灯数量</label><input type="number" id="logoLedCount" value="${hwConfig.logoLedCount}"></div>
+                </div>
+                <div id="logoLedConfig" style="${hwConfig.logoLedEnabled ? '' : 'display:none'}">
+                    <div class="form-row">
+                        <div class="form-field"><label>最大亮度</label><input type="number" id="logoLedMaxBrightness" value="${hwConfig.logoLedMaxBrightness}"></div>
+                        <div class="form-field"><label>亮度档位</label><input type="number" id="logoLedBrightnessLevels" value="${hwConfig.logoLedBrightnessLevels}"></div>
+                        <div class="form-field"><label>速度档位</label><input type="number" id="logoLedSpeedLevels" value="${hwConfig.logoLedSpeedLevels}"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field"><label>默认亮度</label><input type="number" id="logoLedDefaultBrightness" value="${hwConfig.logoLedDefaultBrightness}"></div>
+                        <div class="form-field"><label>默认速度</label><input type="number" id="logoLedDefaultSpeed" value="${hwConfig.logoLedDefaultSpeed}"></div>
+                    </div>
+                </div>
+            </div>
+            <button id="saveHwBtn" style="margin-top:8px; background:#2c6e2c;">💾 保存硬件配置</button>
         `;
+        // 动态显示/隐藏侧灯配置
+        const sideLedEnabledSelect = document.getElementById('sideLedEnabled');
+        const sideLedCountField = document.getElementById('sideLedCountField');
+        const sideLedConfig = document.getElementById('sideLedConfig');
+        const logoLedEnabledSelect = document.getElementById('logoLedEnabled');
+        const logoLedCountField = document.getElementById('logoLedCountField');
+        const logoLedConfig = document.getElementById('logoLedConfig');
+        if (sideLedEnabledSelect) {
+            sideLedEnabledSelect.addEventListener('change', () => {
+                const enabled = sideLedEnabledSelect.value === 'true';
+                sideLedCountField.style.display = enabled ? '' : 'none';
+                sideLedConfig.style.display = enabled ? '' : 'none';
+            });
+        }
+        if (logoLedEnabledSelect) {
+            logoLedEnabledSelect.addEventListener('change', () => {
+                const enabled = logoLedEnabledSelect.value === 'true';
+                logoLedCountField.style.display = enabled ? '' : 'none';
+                logoLedConfig.style.display = enabled ? '' : 'none';
+            });
+        }
         const saveHwBtn = document.getElementById('saveHwBtn');
         if (saveHwBtn) {
             saveHwBtn.onclick = () => {
@@ -925,69 +880,83 @@
                 hwConfig.pid = document.getElementById('pid').value;
                 hwConfig.vid = document.getElementById('vid').value;
                 hwConfig.version = document.getElementById('version').value;
-                hwConfig.bluetoothName = document.getElementById('bluetoothName').value;
+                hwConfig.bluetoothName1 = document.getElementById('bluetoothName1').value;
+                hwConfig.bluetoothName2 = document.getElementById('bluetoothName2').value;
+                hwConfig.bluetoothName3 = document.getElementById('bluetoothName3').value;
+                hwConfig.bluetoothId = document.getElementById('bluetoothId').value;
                 hwConfig.hasModeSwitch = document.getElementById('hasModeSwitch').value === 'true';
+                hwConfig.hasScreen = document.getElementById('hasScreen').value === 'true';
                 hwConfig.rowCount = parseInt(document.getElementById('rowCount').value) || 0;
                 hwConfig.colCount = parseInt(document.getElementById('colCount').value) || 0;
                 hwConfig.rgbLedCount = parseInt(document.getElementById('rgbLedCount').value) || 0;
-                hwConfig.sideLedEnabled = document.getElementById('sideLedEnabled').value === 'true';
-                if (hwConfig.sideLedEnabled) hwConfig.sideLedCount = parseInt(document.getElementById('sideLedCount').value) || 0;
-                hwConfig.logoLedEnabled = document.getElementById('logoLedEnabled').value === 'true';
-                if (hwConfig.logoLedEnabled) hwConfig.logoLedCount = parseInt(document.getElementById('logoLedCount').value) || 0;
-                hwConfig.hasScreen = document.getElementById('hasScreen').value === 'true';
                 hwConfig.maxBrightness = parseInt(document.getElementById('maxBrightness').value) || 0;
                 hwConfig.brightnessLevels = parseInt(document.getElementById('brightnessLevels').value) || 0;
                 hwConfig.speedLevels = parseInt(document.getElementById('speedLevels').value) || 0;
+                hwConfig.sideLedEnabled = document.getElementById('sideLedEnabled').value === 'true';
+                if (hwConfig.sideLedEnabled) {
+                    hwConfig.sideLedCount = parseInt(document.getElementById('sideLedCount').value) || 0;
+                    hwConfig.sideLedMaxBrightness = parseInt(document.getElementById('sideLedMaxBrightness').value) || 255;
+                    hwConfig.sideLedBrightnessLevels = parseInt(document.getElementById('sideLedBrightnessLevels').value) || 5;
+                    hwConfig.sideLedSpeedLevels = parseInt(document.getElementById('sideLedSpeedLevels').value) || 5;
+                    hwConfig.sideLedDefaultBrightness = parseInt(document.getElementById('sideLedDefaultBrightness').value) || 128;
+                    hwConfig.sideLedDefaultSpeed = parseInt(document.getElementById('sideLedDefaultSpeed').value) || 2;
+                }
+                hwConfig.logoLedEnabled = document.getElementById('logoLedEnabled').value === 'true';
+                if (hwConfig.logoLedEnabled) {
+                    hwConfig.logoLedCount = parseInt(document.getElementById('logoLedCount').value) || 0;
+                    hwConfig.logoLedMaxBrightness = parseInt(document.getElementById('logoLedMaxBrightness').value) || 255;
+                    hwConfig.logoLedBrightnessLevels = parseInt(document.getElementById('logoLedBrightnessLevels').value) || 5;
+                    hwConfig.logoLedSpeedLevels = parseInt(document.getElementById('logoLedSpeedLevels').value) || 5;
+                    hwConfig.logoLedDefaultBrightness = parseInt(document.getElementById('logoLedDefaultBrightness').value) || 128;
+                    hwConfig.logoLedDefaultSpeed = parseInt(document.getElementById('logoLedDefaultSpeed').value) || 2;
+                }
                 alert('硬件配置已保存');
             };
-        }
-        const sideLedEnabledSelect = document.getElementById('sideLedEnabled');
-        const logoLedEnabledSelect = document.getElementById('logoLedEnabled');
-        const sideLedCountField = document.getElementById('sideLedCountField');
-        const logoLedCountField = document.getElementById('logoLedCountField');
-        if (sideLedEnabledSelect) {
-            sideLedEnabledSelect.addEventListener('change', () => {
-                sideLedCountField.style.display = sideLedEnabledSelect.value === 'true' ? '' : 'none';
-            });
-        }
-        if (logoLedEnabledSelect) {
-            logoLedEnabledSelect.addEventListener('change', () => {
-                logoLedCountField.style.display = logoLedEnabledSelect.value === 'true' ? '' : 'none';
-            });
         }
     }
 
     function exportJSON() {
-        // 1. 按键排序
         const sortedKeys = [...keys].sort((a, b) => {
             if (a.row !== b.row) return a.row - b.row;
             return a.order - b.order;
         });
-
-        // 2. 获取所有按键的像素坐标（单位：px）
         const positions = calculateKeyPositions();
-
-        // 3. 构建输出对象
         const output = {
             keyboard_info: {
                 name: hwConfig.usbDeviceName,
                 pid: hwConfig.pid,
                 vid: hwConfig.vid,
                 version: hwConfig.version,
-                bluetooth_name: hwConfig.bluetoothName,
+                bluetooth_name1: hwConfig.bluetoothName1,
+                bluetooth_name2: hwConfig.bluetoothName2,
+                bluetooth_name3: hwConfig.bluetoothName3,
+                bluetooth_id: hwConfig.bluetoothId,
                 has_mode_switch: hwConfig.hasModeSwitch,
             },
-            matrix: {
-                rows: hwConfig.rowCount,
-                cols: hwConfig.colCount,
-            },
+            matrix: { rows: hwConfig.rowCount, cols: hwConfig.colCount },
             rgb: {
                 total_leds: hwConfig.rgbLedCount,
-                side_led: { enabled: hwConfig.sideLedEnabled, count: hwConfig.sideLedCount },
-                logo_led: { enabled: hwConfig.logoLedEnabled, count: hwConfig.logoLedCount },
                 max_brightness: hwConfig.maxBrightness,
                 brightness_levels: hwConfig.brightnessLevels,
                 speed_levels: hwConfig.speedLevels,
+                side_led: {
+                    enabled: hwConfig.sideLedEnabled,
+                    count: hwConfig.sideLedCount,
+                    max_brightness: hwConfig.sideLedMaxBrightness,
+                    brightness_levels: hwConfig.sideLedBrightnessLevels,
+                    speed_levels: hwConfig.sideLedSpeedLevels,
+                    default_brightness: hwConfig.sideLedDefaultBrightness,
+                    default_speed: hwConfig.sideLedDefaultSpeed
+                },
+                logo_led: {
+                    enabled: hwConfig.logoLedEnabled,
+                    count: hwConfig.logoLedCount,
+                    max_brightness: hwConfig.logoLedMaxBrightness,
+                    brightness_levels: hwConfig.logoLedBrightnessLevels,
+                    speed_levels: hwConfig.logoLedSpeedLevels,
+                    default_brightness: hwConfig.logoLedDefaultBrightness,
+                    default_speed: hwConfig.logoLedDefaultSpeed
+                }
             },
             has_screen: hwConfig.hasScreen,
             keys: sortedKeys.map(k => {
@@ -999,8 +968,8 @@
                     width_u: k.widthU,
                     height_u: k.heightU,
                     offset_x_u: k.offsetX,
-                    x_px: pos ? Math.round(pos.x) : 0,   // 像素坐标 X
-                    y_px: pos ? Math.round(pos.y) : 0,   // 像素坐标 Y
+                    x_px: pos ? Math.round(pos.x) : 0,
+                    y_px: pos ? Math.round(pos.y) : 0,
                     rgb_index: k.rgbIndex,
                     matrix_row: k.matrixRow,
                     matrix_col: k.matrixCol,
@@ -1008,7 +977,6 @@
                 };
             }),
         };
-
         const dataStr = JSON.stringify(output, null, 2);
         const blob = new Blob([dataStr], { type: "application/json" });
         const url = URL.createObjectURL(blob);
@@ -1051,7 +1019,10 @@
                         hwConfig.pid = json.keyboard_info.pid || hwConfig.pid;
                         hwConfig.vid = json.keyboard_info.vid || hwConfig.vid;
                         hwConfig.version = json.keyboard_info.version || hwConfig.version;
-                        hwConfig.bluetoothName = json.keyboard_info.bluetooth_name || hwConfig.bluetoothName;
+                        hwConfig.bluetoothName1 = json.keyboard_info.bluetooth_name1 || hwConfig.bluetoothName1;
+                        hwConfig.bluetoothName2 = json.keyboard_info.bluetooth_name2 || hwConfig.bluetoothName2;
+                        hwConfig.bluetoothName3 = json.keyboard_info.bluetooth_name3 || hwConfig.bluetoothName3;
+                        hwConfig.bluetoothId = json.keyboard_info.bluetooth_id || hwConfig.bluetoothId;
                         hwConfig.hasModeSwitch = typeof json.keyboard_info.has_mode_switch === 'boolean' ? json.keyboard_info.has_mode_switch : hwConfig.hasModeSwitch;
                     }
                     if (json.matrix) {
@@ -1060,43 +1031,32 @@
                     }
                     if (json.rgb) {
                         hwConfig.rgbLedCount = json.rgb.total_leds || hwConfig.rgbLedCount;
+                        hwConfig.maxBrightness = json.rgb.max_brightness || hwConfig.maxBrightness;
+                        hwConfig.brightnessLevels = json.rgb.brightness_levels || hwConfig.brightnessLevels;
+                        hwConfig.speedLevels = json.rgb.speed_levels || hwConfig.speedLevels;
                         if (json.rgb.side_led) {
                             hwConfig.sideLedEnabled = json.rgb.side_led.enabled || false;
                             hwConfig.sideLedCount = json.rgb.side_led.count || 0;
+                            hwConfig.sideLedMaxBrightness = json.rgb.side_led.max_brightness || 255;
+                            hwConfig.sideLedBrightnessLevels = json.rgb.side_led.brightness_levels || 5;
+                            hwConfig.sideLedSpeedLevels = json.rgb.side_led.speed_levels || 5;
+                            hwConfig.sideLedDefaultBrightness = json.rgb.side_led.default_brightness || 128;
+                            hwConfig.sideLedDefaultSpeed = json.rgb.side_led.default_speed || 2;
                         }
                         if (json.rgb.logo_led) {
                             hwConfig.logoLedEnabled = json.rgb.logo_led.enabled || false;
                             hwConfig.logoLedCount = json.rgb.logo_led.count || 0;
+                            hwConfig.logoLedMaxBrightness = json.rgb.logo_led.max_brightness || 255;
+                            hwConfig.logoLedBrightnessLevels = json.rgb.logo_led.brightness_levels || 5;
+                            hwConfig.logoLedSpeedLevels = json.rgb.logo_led.speed_levels || 5;
+                            hwConfig.logoLedDefaultBrightness = json.rgb.logo_led.default_brightness || 128;
+                            hwConfig.logoLedDefaultSpeed = json.rgb.logo_led.default_speed || 2;
                         }
-                        hwConfig.maxBrightness = json.rgb.max_brightness || hwConfig.maxBrightness;
-                        hwConfig.brightnessLevels = json.rgb.brightness_levels || hwConfig.brightnessLevels;
-                        hwConfig.speedLevels = json.rgb.speed_levels || hwConfig.speedLevels;
                     }
                     if (typeof json.has_screen === 'boolean') hwConfig.hasScreen = json.has_screen;
-                    
-                    // 检查并修复重复的灯光索引
-                    const indices = new Set();
-                    let hasDuplicate = false;
-                    for (let key of keys) {
-                        if (indices.has(key.rgbIndex)) {
-                            hasDuplicate = true;
-                            break;
-                        }
-                        indices.add(key.rgbIndex);
-                    }
-                    if (hasDuplicate) {
-                        if (confirm('检测到导入的灯光索引有重复，是否自动重新分配所有索引（按行/列顺序）？')) {
-                            reassignRgbIndices();
-                        } else {
-                            renderKeyboard();
-                            renderHwConfig();
-                            renderKeyEditor();
-                        }
-                    } else {
-                        renderKeyboard();
-                        renderHwConfig();
-                        renderKeyEditor();
-                    }
+                    renderKeyboard();
+                    renderHwConfig();
+                    renderKeyEditor();
                     alert(`导入成功！共加载 ${keys.length} 个按键`);
                 } catch (err) {
                     alert('导入失败：' + err.message);
@@ -1107,35 +1067,33 @@
         input.click();
     }
 
-    function addKey() { 
-        if (selectedKeyIds.size === 0) {
-            alert('请先选中一个按键，以便在其所在行添加新按键');
-            return;
-        }
-        // 获取选中的第一个按键的行
-        const firstSelectedId = Array.from(selectedKeyIds)[0];
-        const selectedKey = keys.find(k => k.id === firstSelectedId);
-        if (selectedKey) {
-            addKeyToRow(selectedKey.row);
-            //addKeyAfterSelected(selectedKey);
-        }
+    function loadPreset(layoutName) {
+        keys = generateKeysFromLayout(layoutName);
+        selectedKeyIds.clear();
+        renderKeyboard();
+        renderKeyEditor();
     }
 
-    function loadPreset() { keys = getPresetLayout(); selectedKeyIds.clear(); renderKeyboard(); renderKeyEditor(); }
-    function setActiveLayer(layer) { activeLayer = layer; renderKeyboard(); document.querySelectorAll('.layer-btn').forEach((btn, idx) => { if (idx === layer) btn.classList.add('active'); else btn.classList.remove('active'); }); }
+    function setActiveLayer(layer) {
+        activeLayer = layer;
+        renderKeyboard();
+        document.querySelectorAll('.layer-btn').forEach((btn, idx) => {
+            if (idx === layer) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+    }
     
     function init() {
         keyboardGridDiv = document.getElementById('keyboardGrid');
         selectedKeyEditorDiv = document.getElementById('selectedKeyEditor');
         hwConfigForm = document.getElementById('hwConfigForm');
         renderKeyboard(); renderHwConfig(); renderKeyEditor();
-        //document.getElementById('addKeyBtn').onclick = addKey;
         document.getElementById('addKeyBtn').onclick = addKeyAfterSelected;
         document.getElementById('deleteKeyBtn').onclick = deleteSelectedKeys;
         document.getElementById('exportBtn').onclick = exportJSON;
         document.getElementById('importBtn').onclick = importJSON;
-        document.getElementById('loadPresetBtn').onclick = loadPreset;
         document.getElementById('reassignRgbBtn').onclick = reassignRgbIndices;
+        document.getElementById('presetSelect').onchange = (e) => loadPreset(e.target.value);
         for (let i = 0; i < 4; i++) document.getElementById(`layerBtn${i}`).onclick = () => setActiveLayer(i);
         setActiveLayer(0);
     }
@@ -1145,7 +1103,12 @@
 <div class="app-container">
     <div class="keyboard-area">
         <div class="toolbar">
-            <button id="loadPresetBtn">🎮 60%基础布局</button>
+            <select id="presetSelect" style="background:#3c3c3c;">
+                <option value="100%">100% 全尺寸布局</option>
+                <option value="80%">80% 布局</option>
+                <option value="70%">70% 布局</option>
+                <option value="60%" selected>60% 布局</option>
+            </select>
             <button id="addKeyBtn">➕ 添加按键</button>
             <button id="deleteKeyBtn" class="danger">🗑 删除选中</button>
             <button id="importBtn" style="background:#4a6c8f;">📂 导入JSON</button>
@@ -1168,15 +1131,12 @@
         <div class="config-section">
             <h3>💡 使用提示</h3>
             <ul style="font-size:11px; padding-left:16px; margin:0;">
-                <li>• 按键采用行式自动排列，间距0.25u，行高1u</li>
-                <li>• <strong>Ctrl+点击</strong> 多选按键，右侧可批量修改宽度、偏移量、交换顺序、上下移动行</li>
+                <li>• 支持100%/80%/70%/60%四种预设布局切换</li>
+                <li>• 蓝牙配置：三个独立蓝牙名称 + 蓝牙ID（16进制）</li>
+                <li>• 侧灯/Logo灯独立配置：数量、最大亮度、档位、默认值</li>
+                <li>• <strong>Ctrl+点击</strong> 多选按键，批量编辑</li>
                 <li>• 偏移量步进0.25u，用于单独调整按键左右位置</li>
-                <li>• 交换顺序：调整按键在行内的排列次序</li>
-                <li>• 宽度调整步长0.25u，所有操作实时生效</li>
-                <li>• <strong>灯光索引智能分配</strong>：新添加按键自动获取最大索引+1；点击“重新分配灯光索引”可按行/列顺序整理所有索引</li>
-                <li>• 导入JSON时如检测到重复索引，会提示自动修复</li>
-                <li>• 单个按键修改实时生效，无需保存</li>
-                <li>• 支持导入/导出JSON配置文件，按键顺序按行列排列</li>
+                <li>• 灯光索引可一键重新分配（按行/列顺序）</li>
             </ul>
         </div>
     </div>

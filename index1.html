@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>键盘配置工具 - 专业版 | 编码器支持 | 智能灯光 | 三蓝牙</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #2d2d2d;
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+            overflow: hidden;
+            color: #e0e0e0;
+        }
+        .app-container {
+            display: flex;
+            gap: 20px;
+            height: 100%;
+            background: #1e1e1e;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        }
+        .keyboard-area {
+            flex: 3;
+            background: #252525;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: inset 0 0 0 1px #3a3a3a;
+        }
+        .toolbar {
+            padding: 12px 16px;
+            background: #2c2c2c;
+            border-bottom: 1px solid #3f3f3f;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .toolbar button, .toolbar select {
+            background: #3c3c3c;
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .toolbar button:hover { background: #4e4e4e; }
+        .layer-buttons {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+        .layer-btn {
+            background: #3a3a5a;
+            font-weight: bold;
+        }
+        .layer-btn.active {
+            background: #6c5ce7;
+            box-shadow: 0 0 5px #a29bfe;
+        }
+        .canvas-scroll {
+            flex: 1;
+            overflow: auto;
+            padding: 30px;
+            background: #1a1a1a;
+            position: relative;
+        }
+        .keyboard-grid {
+            position: relative;
+            min-height: 600px;
+            min-width: 800px;
+            background: #2b2b2b;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 0 0 2px #444;
+        }
+        .key {
+            position: absolute;
+            background: #1f1f2f;
+            border-radius: 8px;
+            border: 1px solid #5a5a7a;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: all 0.05s linear;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 300;
+            color: #f0f0f0;
+            text-align: center;
+            padding: 4px 2px;
+            z-index: 10;
+        }
+        /* 编码器特殊样式 */
+        .key.encoder-key {
+            background: #2a2a3e;
+            border: 2px solid #e67e22;
+            border-radius: 30px;
+            box-shadow: 0 0 6px rgba(230,126,34,0.3);
+        }
+        .key.encoder-key .layer-func {
+            font-family: monospace;
+            font-size: 9px;
+        }
+        .key.encoder-key .meta-info {
+            color: #e67e22;
+        }
+        .key.selected {
+            border: 2px solid #f1c40f;
+            background: #2c2c44;
+            box-shadow: 0 0 12px rgba(241,196,15,0.4);
+        }
+        .key:hover { background: #2e2e48; transform: scale(1.01); }
+        .key .layer-func {
+            font-size: 10px;
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 90%;
+        }
+        .key .encoder-badge {
+            font-size: 8px;
+            background: #e67e22;
+            border-radius: 10px;
+            padding: 0px 4px;
+            margin-top: 2px;
+            color: black;
+        }
+        .key .meta-info {
+            font-size: 8px;
+            color: #aaa;
+            display: flex;
+            gap: 6px;
+            margin-top: 2px;
+        }
+        .config-area {
+            flex: 1.2;
+            background: #252525;
+            border-radius: 12px;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: inset 0 0 0 1px #3a3a3a;
+        }
+        .config-section {
+            background: #2c2c2c;
+            border-radius: 12px;
+            padding: 12px 16px;
+            border-left: 4px solid #6c5ce7;
+        }
+        .config-section h3 {
+            margin: 0 0 12px 0;
+            font-size: 16px;
+            color: #ddd;
+        }
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+        .form-field {
+            flex: 1;
+            min-width: 100px;
+        }
+        .form-field label {
+            display: block;
+            font-size: 11px;
+            color: #aaa;
+            margin-bottom: 4px;
+        }
+        .form-field input, .form-field select, .form-field textarea {
+            width: 100%;
+            background: #1e1e1e;
+            border: 1px solid #444;
+            color: white;
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        .form-field textarea {
+            font-family: monospace;
+            resize: vertical;
+        }
+        .key-editor {
+            background: #2c2c2c;
+            border-radius: 12px;
+            padding: 12px;
+        }
+        button.danger { background: #8b5a5a; }
+        button.danger:hover { background: #b16e6e; }
+        button.success { background: #2c6e2c; }
+        button.success:hover { background: #3e8e3e; }
+        hr { border-color: #3f3f3f; }
+        .move-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .move-btn {
+            background: #4a4a6a;
+            font-size: 14px;
+            padding: 4px 12px;
+            min-width: 80px;
+        }
+        .multi-select-hint {
+            font-size: 10px;
+            color: #aaa;
+            margin-top: 4px;
+        }
+        .encoder-section {
+            border-top: 1px solid #e67e22;
+            margin-top: 8px;
+            padding-top: 8px;
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1e1e1e; }
+        ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        .badge-encoder { background: #e67e22; padding: 2px 6px; border-radius: 20px; font-size: 9px; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="keyboard-area">
+        <div class="toolbar">
+            <button id="loadPresetBtn">🎮 标准预设</button>
+            <button id="addKeyBtn">➕ 添加按键</button>
+            <button id="addEncoderBtn" style="background:#e67e22;">🔄 添加编码器</button>
+            <button id="deleteKeyBtn" class="danger">🗑 删除选中</button>
+            <button id="importBtn" style="background:#4a6c8f;">📂 导入JSON</button>
+            <button id="reassignRgbBtn" style="background:#6c5ce7;">🔄 重排灯光索引</button>
+            <div class="layer-buttons">
+                <button id="layerBtn0" class="layer-btn">Layer 0</button>
+                <button id="layerBtn1" class="layer-btn">Layer 1</button>
+                <button id="layerBtn2" class="layer-btn">Layer 2</button>
+                <button id="layerBtn3" class="layer-btn">Layer 3</button>
+            </div>
+            <button id="exportBtn" style="background:#2c6e2c;">📁 导出 JSON</button>
+        </div>
+        <div class="canvas-scroll">
+            <div id="keyboardGrid" class="keyboard-grid" style="position: relative; min-height: 800px;"></div>
+        </div>
+    </div>
+    <div class="config-area">
+        <div id="hwConfigForm"></div>
+        <div id="selectedKeyEditor"></div>
+        <div class="config-section">
+            <h3>💡 增强特性</h3>
+            <ul style="font-size:11px; padding-left:16px; margin:0;">
+                <li>✨ <strong>编码器按键</strong> (橙色边框) : 支持按下/左旋/右旋，每层独立配置</li>
+                <li>📡 <strong>三组蓝牙名称</strong> : BLE1 / BLE2 / BLE3 独立命名</li>
+                <li>🎨 <strong>侧灯/Logo灯</strong> : 最大亮度/速度、默认值、索引数组编辑</li>
+                <li>🖥️ <strong>Win/Mac 模式切换开关</strong> : 支持双系统布局</li>
+                <li>🔢 <strong>灯光数组编辑</strong> : 自定义RGB灯珠索引序列</li>
+                <li>📌 编码器支持 Ctrl+多选、批量移动/删除，同普通按键一致</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== 单位转换 ====================
+    const U_TO_PX = 50;
+    const KEY_SPACING_U = 0.25;
+    const ROW_SPACING_U = 0.25;
+    const ROW_HEIGHT_U = 1;
+    const MOVE_STEP_U = 0.25;
+    function uToPx(u) { return u * U_TO_PX; }
+    function generateId() { return 'key-' + Date.now() + '-' + Math.random().toString(36).substr(2, 8); }
+
+    // 键值预设库 (保留常用)
+    const KEYCODE_PRESETS = [
+        "KC_NO", "KC_TRNS", "KC_A", "KC_B", "KC_C", "KC_D", "KC_E", "KC_F", "KC_G", "KC_H", "KC_I", "KC_J", "KC_K", "KC_L", "KC_M",
+        "KC_N", "KC_O", "KC_P", "KC_Q", "KC_R", "KC_S", "KC_T", "KC_U", "KC_V", "KC_W", "KC_X", "KC_Y", "KC_Z", "KC_1", "KC_2", "KC_3",
+        "KC_4", "KC_5", "KC_6", "KC_7", "KC_8", "KC_9", "KC_0", "KC_ENTER", "KC_ESC", "KC_BSPC", "KC_TAB", "KC_SPACE", "KC_LCTRL", "KC_LALT",
+        "KC_LGUI", "KC_RCTRL", "KC_RALT", "KC_RGUI", "KC_LSFT", "KC_RSFT", "MO(1)", "TG(1)", "LT(1, KC_SPC)", "KC_UP", "KC_DOWN", "KC_LEFT", "KC_RIGHT",
+        "KC_VOLU", "KC_VOLD", "KC_MUTE", "KC_MNXT", "KC_MPRV", "KC_MPLY", "RGB_TOG", "RGB_MOD", "RGB_HUI", "RGB_HUD"
+    ];
+
+    // ---------- 硬件配置（增强）----------
+    let hwConfig = {
+        usbDeviceName: "Custom Pro", pid: "0x6060", vid: "0xFEED", version: "1.0.0",
+        bluetoothName1: "KB_BLE1", bluetoothName2: "KB_BLE2", bluetoothName3: "KB_BLE3",
+        hasModeSwitch: false, winMacSwitch: false,   // winMacSwitch: true=Win/Mac切换支持
+        // 矩阵
+        rowCount: 5, colCount: 14, rgbLedCount: 64,
+        // 侧灯配置
+        sideLedEnabled: false, sideLedCount: 0, sideLedMaxBrightness: 255, sideLedDefaultBrightness: 128,
+        sideLedMaxSpeed: 5, sideLedDefaultSpeed: 2, sideLedIndexArray: "",   // 存储数组字符串 "0,1,2,3"
+        // Logo灯配置
+        logoLedEnabled: false, logoLedCount: 0, logoLedMaxBrightness: 255, logoLedDefaultBrightness: 128,
+        logoLedMaxSpeed: 5, logoLedDefaultSpeed: 2, logoLedIndexArray: "",
+        hasScreen: false, maxBrightness: 255, brightnessLevels: 5, speedLevels: 5
+    };
+
+    // 按键数据结构: 支持编码器 (encoderData)
+    let keys = [];
+    let selectedKeyIds = new Set();
+    let activeLayer = 0;
+    let keyboardGridDiv, selectedKeyEditorDiv, hwConfigForm;
+
+    // ----------------------------- 辅助函数 -----------------------------
+    function createDefaultKey(isEncoder = false, row = 0, order = 0, width = 1) {
+        const baseId = generateId();
+        const layers = isEncoder 
+            ? Array(4).fill().map(() => ({ press: "KC_NO", left: "KC_NO", right: "KC_NO" }))
+            : [["KC_NO", "KC_NO", "KC_NO", "KC_NO"]];
+        return {
+            id: baseId,
+            row: row, order: order, widthU: width, heightU: 1, offsetX: 0,
+            rgbIndex: keys.length, matrixRow: row, matrixCol: order,
+            isEncoder: isEncoder || false,
+            encoderActions: isEncoder ? layers : null,   // 编码器专用: 每层 {press, left, right}
+            layers: !isEncoder ? ["KC_NO", "KC_NO", "KC_NO", "KC_NO"] : null
+        };
+    }
+
+    // 标准预设（含几个编码器示例）
+    function getPresetLayout() {
+        const basic = [];
+        // 普通按键行 (示例简约布局)
+        const rowsData = [
+            { row:0, keys:[1,1,1,1,1,1,1,1,1,1,1,1,1,1], funcs:["KC_ESC","KC_1","KC_2","KC_3","KC_4","KC_5","KC_6","KC_7","KC_8","KC_9","KC_0","KC_MINS","KC_EQL","KC_BSPC"] },
+            { row:1, keys:[1.25,1,1,1,1,1,1,1,1,1,1,1,1,1.25], funcs:["KC_TAB","KC_Q","KC_W","KC_E","KC_R","KC_T","KC_Y","KC_U","KC_I","KC_O","KC_P","KC_LBRC","KC_RBRC","KC_BSLS"] },
+            { row:2, keys:[1.5,1,1,1,1,1,1,1,1,1,1,1,1.5], funcs:["KC_CAPS","KC_A","KC_S","KC_D","KC_F","KC_G","KC_H","KC_J","KC_K","KC_L","KC_SCLN","KC_QUOT","KC_ENT"] },
+            { row:3, keys:[1.75,1,1,1,1,1,1,1,1,1,1,1.75], funcs:["KC_LSFT","KC_Z","KC_X","KC_C","KC_V","KC_B","KC_N","KC_M","KC_COMM","KC_DOT","KC_SLSH","KC_RSFT"] },
+            { row:4, keys:[1.25,1.25,1.25,6.25,1.25,1.25,1.25,1.25], funcs:["KC_LCTL","KC_LGUI","KC_LALT","KC_SPACE","KC_RALT","KC_RGUI","KC_RCTL","MO(1)"] }
+        ];
+        let globalOrder = 0;
+        for (const r of rowsData) {
+            for (let i=0; i<r.keys.length; i++) {
+                const key = createDefaultKey(false, r.row, i, r.keys[i]);
+                key.layers[0] = r.funcs[i] || "KC_NO";
+                key.rgbIndex = globalOrder++;
+                keys.push(key);
+            }
+        }
+        // 添加一个编码器示例 (位于右上角)
+        const encoder = createDefaultKey(true, 0, 14, 1.5);
+        encoder.encoderActions[0] = { press: "KC_MUTE", left: "KC_VOLD", right: "KC_VOLU" };
+        encoder.rgbIndex = globalOrder++;
+        encoder.offsetX = 0.5;
+        keys.push(encoder);
+        return keys;
+    }
+
+    // 重新分配灯光索引
+    function reassignRgbIndices() {
+        const sorted = [...keys].sort((a,b)=> a.row!==b.row ? a.row-b.row : a.order-b.order);
+        sorted.forEach((k,idx)=> k.rgbIndex = idx);
+        renderKeyboard(); renderKeyEditor();
+        alert(`✅ 灯光索引已重新分配 (${keys.length}个键)`);
+    }
+
+    // 计算坐标 (复用原逻辑)
+    function calculateKeyPositions() {
+        const rowsMap = new Map();
+        keys.forEach(k => { if(!rowsMap.has(k.row)) rowsMap.set(k.row, []); rowsMap.get(k.row).push(k); });
+        for(let list of rowsMap.values()) list.sort((a,b)=> a.order - b.order);
+        const sortedRows = Array.from(rowsMap.keys()).sort((a,b)=>a-b);
+        const positions = new Map();
+        let currentY = 0;
+        for(let row of sortedRows) {
+            let currentX = 0;
+            for(let key of rowsMap.get(row)) {
+                const w = uToPx(key.widthU), h = uToPx(key.heightU), off = uToPx(key.offsetX);
+                positions.set(key.id, { x: currentX + off, y: currentY, width: w, height: h });
+                currentX += w + uToPx(KEY_SPACING_U);
+            }
+            currentY += uToPx(ROW_HEIGHT_U) + uToPx(ROW_SPACING_U);
+        }
+        return positions;
+    }
+
+    function renderKeyboard() {
+        if(!keyboardGridDiv) return;
+        const positions = calculateKeyPositions();
+        keyboardGridDiv.innerHTML = '';
+        keys.forEach(key => {
+            const pos = positions.get(key.id);
+            if(!pos) return;
+            const div = document.createElement('div');
+            div.className = 'key' + (key.isEncoder ? ' encoder-key' : '');
+            if(selectedKeyIds.has(key.id)) div.classList.add('selected');
+            div.style.width = pos.width + 'px';
+            div.style.height = pos.height + 'px';
+            div.style.left = pos.x + 'px';
+            div.style.top = pos.y + 'px';
+            // 显示内容
+            let funcDisplay = "";
+            if(key.isEncoder) {
+                const act = key.encoderActions[activeLayer] || { press:"-", left:"-", right:"-" };
+                funcDisplay = `🔘${act.press} | ↻${act.left} | ↺${act.right}`;
+            } else {
+                funcDisplay = key.layers[activeLayer] || "???";
+            }
+            const layerSpan = document.createElement('div');
+            layerSpan.className = 'layer-func';
+            layerSpan.textContent = funcDisplay.substring(0, 28);
+            const metaSpan = document.createElement('div');
+            metaSpan.className = 'meta-info';
+            metaSpan.innerHTML = `<span>RGB:${key.rgbIndex}</span><span>${key.isEncoder ? '🔘ENC' : '🔲'}</span><span>${key.matrixRow},${key.matrixCol}</span>`;
+            div.appendChild(layerSpan);
+            div.appendChild(metaSpan);
+            if(key.isEncoder) {
+                const badge = document.createElement('div');
+                badge.className = 'encoder-badge';
+                badge.textContent = 'ENCODER';
+                div.appendChild(badge);
+            }
+            div.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if(e.ctrlKey || e.metaKey) {
+                    if(selectedKeyIds.has(key.id)) selectedKeyIds.delete(key.id);
+                    else selectedKeyIds.add(key.id);
+                } else {
+                    selectedKeyIds.clear();
+                    selectedKeyIds.add(key.id);
+                }
+                renderKeyboard();
+                renderKeyEditor();
+            });
+            keyboardGridDiv.appendChild(div);
+        });
+        if(selectedKeyIds.size === 0) renderKeyEditor();
+    }
+
+    // 批量操作（沿用原有逻辑，适配编码器）
+    function batchChangeWidth(delta) { modifySelectedKeys(k => { k.widthU = Math.max(0.25, Math.round((k.widthU+delta)*100)/100); }); }
+    function batchChangeOffset(delta) { modifySelectedKeys(k => { k.offsetX = Math.round((k.offsetX+delta)*100)/100; }); }
+    function batchMoveOrder(delta) { /* 略同原始，保持交换逻辑 */ 
+        if(selectedKeyIds.size===0) return;
+        const rowsMap = new Map();
+        for(let id of selectedKeyIds) { let k=keys.find(x=>x.id===id); if(k) { if(!rowsMap.has(k.row)) rowsMap.set(k.row,[]); rowsMap.get(k.row).push(k); } }
+        for(let [row, sel] of rowsMap) {
+            let rowKeys = keys.filter(k=>k.row===row).sort((a,b)=>a.order-b.order);
+            let selOrders = new Set(sel.map(s=>s.order));
+            if(delta>0) {
+                for(let i=rowKeys.length-1;i>=0;i--) {
+                    let k=rowKeys[i];
+                    if(selOrders.has(k.order) && rowKeys[i+1] && !selOrders.has(rowKeys[i+1].order)) {
+                        [k.order, rowKeys[i+1].order] = [rowKeys[i+1].order, k.order];
+                    }
+                }
+            } else {
+                for(let i=0;i<rowKeys.length;i++) {
+                    let k=rowKeys[i];
+                    if(selOrders.has(k.order) && rowKeys[i-1] && !selOrders.has(rowKeys[i-1].order)) {
+                        [k.order, rowKeys[i-1].order] = [rowKeys[i-1].order, k.order];
+                    }
+                }
+            }
+            let fixed = keys.filter(k=>k.row===row).sort((a,b)=>a.order-b.order);
+            fixed.forEach((k,idx)=> k.order=idx);
+        }
+        renderKeyboard(); renderKeyEditor();
+    }
+    function batchMoveRow(delta) { modifySelectedKeys(k => { k.row = Math.max(0, k.row+delta); }); reorganizeOrders(); renderKeyboard(); renderKeyEditor(); }
+    function modifySelectedKeys(callback) { if(selectedKeyIds.size===0) { alert('请先选中按键'); return; } for(let id of selectedKeyIds) { let k=keys.find(x=>x.id===id); if(k) callback(k); } renderKeyboard(); renderKeyEditor(); }
+    function reorganizeOrders() { const rows = [...new Set(keys.map(k=>k.row))]; for(let r of rows) { let arr = keys.filter(k=>k.row===r).sort((a,b)=>a.order-b.order); arr.forEach((k,idx)=> k.order=idx); } }
+    function deleteSelectedKeys() { if(selectedKeyIds.size===0) return; keys = keys.filter(k=>!selectedKeyIds.has(k.id)); selectedKeyIds.clear(); reorganizeOrders(); renderKeyboard(); renderKeyEditor(); }
+    function addKeyAfterSelected() { addNewKey(false); }
+    function addEncoder() { addNewKey(true); }
+    function addNewKey(isEncoder) {
+        if(selectedKeyIds.size===0) { alert('请先选中一个按键，将在其右侧添加'); return; }
+        const refId = Array.from(selectedKeyIds)[0];
+        const ref = keys.find(k=>k.id===refId);
+        if(!ref) return;
+        const { row, order } = ref;
+        keys.forEach(k => { if(k.row===row && k.order>order) k.order++; });
+        const maxRgb = keys.reduce((m,k)=>Math.max(m,k.rgbIndex),0);
+        const newKey = createDefaultKey(isEncoder, row, order+1, 1);
+        newKey.rgbIndex = maxRgb+1;
+        newKey.matrixRow = row; newKey.matrixCol = order+1;
+        if(!isEncoder) newKey.layers = ["KC_NO","KC_NO","KC_NO","KC_NO"];
+        else newKey.encoderActions = Array(4).fill().map(()=>({ press:"KC_NO", left:"KC_NO", right:"KC_NO" }));
+        keys.push(newKey);
+        reorganizeOrders();
+        renderKeyboard();
+        selectedKeyIds.clear();
+        selectedKeyIds.add(newKey.id);
+        renderKeyEditor();
+    }
+
+    // 渲染编辑器（包含编码器详细设置和硬件面板）
+    function renderKeyEditor() {
+        if(!selectedKeyEditorDiv) return;
+        if(selectedKeyIds.size===0) {
+            selectedKeyEditorDiv.innerHTML = `<div class="config-section"><div style="text-align:center;">⚙️ 选中按键以编辑</div><button id="globalRgbRowBtn" class="move-btn">按行重排灯光索引</button><button id="batchRgbStartBtn" class="move-btn">批量设起始索引</button></div>`;
+            document.getElementById('globalRgbRowBtn')?.addEventListener('click',()=>reassignRgbIndices());
+            document.getElementById('batchRgbStartBtn')?.addEventListener('click',()=>{ let s=prompt('起始索引'); if(s!==null) batchSetRgbStart(parseInt(s)); });
+            return;
+        }
+        const selected = Array.from(selectedKeyIds).map(id=>keys.find(k=>k.id===id)).filter(k=>k);
+        if(selected.length===0) return;
+        const isSingle = selected.length===1;
+        const key = selected[0];
+        let html = `<div class="config-section"><h3>✏️ 编辑 (${selected.length}个按键)</h3>
+            <div class="form-row"><div class="form-field"><label>宽度(u)</label><div class="move-buttons"><button id="batchWDec">-0.25</button><button id="batchWInc">+0.25</button></div></div>
+            <div class="form-field"><label>偏移(u)</label><div class="move-buttons"><button id="batchODec">←左移</button><button id="batchOInc">右移→</button></div></div></div>
+            <div class="form-row"><button id="batchMoveLeftBtn">←交换左</button><button id="batchMoveRightBtn">交换右→</button><button id="batchMoveUpBtn">上移行</button><button id="batchMoveDownBtn">下移行</button></div>
+            <button id="deleteSelectedMulti" class="danger">删除选中</button>`;
+        if(isSingle && key.isEncoder) {
+            html += `<div class="encoder-section"><h4>🔄 编码器配置 (每层独立)</h4>`;
+            for(let l=0;l<4;l++) {
+                const acts = key.encoderActions[l] || { press:"KC_NO", left:"KC_NO", right:"KC_NO" };
+                html += `<div style="border-bottom:1px solid #444; margin-bottom:10px;"><label>Layer ${l}</label>
+                    <div class="form-row"><div class="form-field"><label>按下</label><input list="keycodes" class="enc-press-${l}" value="${acts.press}"></div>
+                    <div class="form-field"><label>左旋</label><input list="keycodes" class="enc-left-${l}" value="${acts.left}"></div>
+                    <div class="form-field"><label>右旋</label><input list="keycodes" class="enc-right-${l}" value="${acts.right}"></div></div></div>`;
+            }
+            html += `</div><datalist id="keycodes">${KEYCODE_PRESETS.map(c=>`<option>${c}</option>`).join('')}</datalist>`;
+        } else if(isSingle && !key.isEncoder) {
+            html += `<div><h4>🔘 普通按键层功能</h4>`;
+            for(let l=0;l<4;l++) {
+                html += `<div class="form-row"><div class="form-field"><label>Layer ${l}</label><input list="keycodes" id="layerInput${l}" value="${key.layers[l]}"></div></div>`;
+            }
+            html += `</div><datalist id="keycodes">${KEYCODE_PRESETS.map(c=>`<option>${c}</option>`).join('')}</datalist>`;
+        }
+        if(isSingle) {
+            html += `<div class="form-row"><div class="form-field"><label>RGB索引</label><input id="singleRgbIdx" value="${key.rgbIndex}"></div>
+                     <div class="form-field"><label>矩阵行/列</label><input id="singleMatRow" value="${key.matrixRow}" size=3> / <input id="singleMatCol" value="${key.matrixCol}" size=3></div></div>`;
+        }
+        html += `</div>`;
+        selectedKeyEditorDiv.innerHTML = html;
+        // bind events
+        document.getElementById('batchWInc')?.addEventListener('click',()=>batchChangeWidth(MOVE_STEP_U));
+        document.getElementById('batchWDec')?.addEventListener('click',()=>batchChangeWidth(-MOVE_STEP_U));
+        document.getElementById('batchODec')?.addEventListener('click',()=>batchChangeOffset(-MOVE_STEP_U));
+        document.getElementById('batchOInc')?.addEventListener('click',()=>batchChangeOffset(MOVE_STEP_U));
+        document.getElementById('batchMoveLeftBtn')?.addEventListener('click',()=>batchMoveOrder(-1));
+        document.getElementById('batchMoveRightBtn')?.addEventListener('click',()=>batchMoveOrder(1));
+        document.getElementById('batchMoveUpBtn')?.addEventListener('click',()=>batchMoveRow(-1));
+        document.getElementById('batchMoveDownBtn')?.addEventListener('click',()=>batchMoveRow(1));
+        document.getElementById('deleteSelectedMulti')?.addEventListener('click',deleteSelectedKeys);
+        if(isSingle && !key.isEncoder) {
+            for(let l=0;l<4;l++) {
+                const inp = document.getElementById(`layerInput${l}`);
+                if(inp) inp.addEventListener('input', (e)=>{ key.layers[l] = e.target.value; renderKeyboard(); });
+            }
+        }
+        if(isSingle && key.isEncoder) {
+            for(let l=0;l<4;l++) {
+                const pInp = document.querySelector(`.enc-press-${l}`);
+                const lInp = document.querySelector(`.enc-left-${l}`);
+                const rInp = document.querySelector(`.enc-right-${l}`);
+                const update = () => {
+                    if(!key.encoderActions[l]) key.encoderActions[l]={};
+                    key.encoderActions[l].press = pInp?.value || "KC_NO";
+                    key.encoderActions[l].left = lInp?.value || "KC_NO";
+                    key.encoderActions[l].right = rInp?.value || "KC_NO";
+                    renderKeyboard();
+                };
+                pInp?.addEventListener('input', update);
+                lInp?.addEventListener('input', update);
+                rInp?.addEventListener('input', update);
+            }
+        }
+        if(isSingle) {
+            const rgbInp = document.getElementById('singleRgbIdx');
+            const rowInp = document.getElementById('singleMatRow'), colInp = document.getElementById('singleMatCol');
+            rgbInp?.addEventListener('input', (e)=>{ key.rgbIndex = parseInt(e.target.value)||0; renderKeyboard(); });
+            rowInp?.addEventListener('input', (e)=>{ key.matrixRow = parseInt(e.target.value)||0; renderKeyboard(); });
+            colInp?.addEventListener('input', (e)=>{ key.matrixCol = parseInt(e.target.value)||0; renderKeyboard(); });
+        }
+    }
+
+    function batchSetRgbStart(start) { 
+        const sel = Array.from(selectedKeyIds).map(id=>keys.find(k=>k.id===id)).filter(k=>k);
+        sel.sort((a,b)=> a.row!==b.row ? a.row-b.row : a.order-b.order);
+        for(let i=0;i<sel.length;i++) sel[i].rgbIndex = start+i;
+        renderKeyboard(); renderKeyEditor();
+    }
+
+    // 硬件配置渲染（三蓝牙 + 侧灯/logo灯数组 + win/mac）
+    function renderHwConfig() {
+        if(!hwConfigForm) return;
+        hwConfigForm.innerHTML = `
+            <div class="config-section"><h3>⚙️ 系统 & 蓝牙</h3>
+                <div class="form-row"><div class="form-field"><label>USB名</label><input id="usbName" value="${hwConfig.usbDeviceName}"></div>
+                <div class="form-field"><label>PID/VID</label><input id="pidVal" value="${hwConfig.pid}">/<input id="vidVal" value="${hwConfig.vid}" style="width:70px"></div></div>
+                <div class="form-row"><div class="form-field"><label>蓝牙1</label><input id="bt1" value="${hwConfig.bluetoothName1}"></div>
+                <div class="form-field"><label>蓝牙2</label><input id="bt2" value="${hwConfig.bluetoothName2}"></div>
+                <div class="form-field"><label>蓝牙3</label><input id="bt3" value="${hwConfig.bluetoothName3}"></div></div>
+                <div class="form-row"><div class="form-field"><label>Win/Mac切换</label><select id="winMacSwitch"><option value="true" ${hwConfig.winMacSwitch?'selected':''}>支持</option><option value="false" ${!hwConfig.winMacSwitch?'selected':''}>不支持</option></select></div>
+                <div class="form-field"><label>模式开关</label><select id="modeSwitch"><option value="true" ${hwConfig.hasModeSwitch?'selected':''}>有</option><option value="false" ${!hwConfig.hasModeSwitch?'selected':''}>无</option></select></div></div>
+                <h4>🎨 侧灯配置</h4><div class="form-row"><div class="form-field"><label>启用</label><select id="sideEn"><option value="true" ${hwConfig.sideLedEnabled?'selected':''}>启用</option><option value="false" ${!hwConfig.sideLedEnabled?'selected':''}>禁用</option></select></div>
+                <div class="form-field"><label>灯珠数量</label><input id="sideCount" value="${hwConfig.sideLedCount}"></div></div>
+                <div class="form-row"><div class="form-field"><label>最大亮度</label><input id="sideMaxBright" value="${hwConfig.sideLedMaxBrightness}"></div>
+                <div class="form-field"><label>默认亮度</label><input id="sideDefBright" value="${hwConfig.sideLedDefaultBrightness}"></div>
+                <div class="form-field"><label>最大速度</label><input id="sideMaxSpeed" value="${hwConfig.sideLedMaxSpeed}"></div>
+                <div class="form-field"><label>默认速度</label><input id="sideDefSpeed" value="${hwConfig.sideLedDefaultSpeed}"></div></div>
+                <div class="form-field"><label>灯光数组 (RGB索引, 逗号分割)</label><textarea id="sideArray" rows="2">${hwConfig.sideLedIndexArray}</textarea></div>
+                <h4>✨ Logo灯配置</h4><div class="form-row"><div class="form-field"><label>启用</label><select id="logoEn"><option value="true" ${hwConfig.logoLedEnabled?'selected':''}>启用</option><option value="false" ${!hwConfig.logoLedEnabled?'selected':''}>禁用</option></select></div>
+                <div class="form-field"><label>灯珠数量</label><input id="logoCount" value="${hwConfig.logoLedCount}"></div></div>
+                <div class="form-row"><div class="form-field"><label>最大亮度</label><input id="logoMaxBright" value="${hwConfig.logoLedMaxBrightness}"></div>
+                <div class="form-field"><label>默认亮度</label><input id="logoDefBright" value="${hwConfig.logoLedDefaultBrightness}"></div>
+                <div class="form-field"><label>最大速度</label><input id="logoMaxSpeed" value="${hwConfig.logoLedMaxSpeed}"></div>
+                <div class="form-field"><label>默认速度</label><input id="logoDefSpeed" value="${hwConfig.logoLedDefaultSpeed}"></div></div>
+                <div class="form-field"><label>灯光数组 (RGB索引)</label><textarea id="logoArray" rows="2">${hwConfig.logoLedIndexArray}</textarea></div>
+                <button id="saveHwBtn" class="success">💾 保存硬件配置</button>
+            </div>`;
+        document.getElementById('saveHwBtn')?.addEventListener('click', () => {
+            hwConfig.usbDeviceName = document.getElementById('usbName').value;
+            hwConfig.pid = document.getElementById('pidVal').value; hwConfig.vid = document.getElementById('vidVal').value;
+            hwConfig.bluetoothName1 = document.getElementById('bt1').value; hwConfig.bluetoothName2 = document.getElementById('bt2').value; hwConfig.bluetoothName3 = document.getElementById('bt3').value;
+            hwConfig.winMacSwitch = document.getElementById('winMacSwitch').value === 'true';
+            hwConfig.hasModeSwitch = document.getElementById('modeSwitch').value === 'true';
+            hwConfig.sideLedEnabled = document.getElementById('sideEn').value === 'true';
+            hwConfig.sideLedCount = parseInt(document.getElementById('sideCount').value)||0;
+            hwConfig.sideLedMaxBrightness = parseInt(document.getElementById('sideMaxBright').value)||255;
+            hwConfig.sideLedDefaultBrightness = parseInt(document.getElementById('sideDefBright').value)||128;
+            hwConfig.sideLedMaxSpeed = parseInt(document.getElementById('sideMaxSpeed').value)||5;
+            hwConfig.sideLedDefaultSpeed = parseInt(document.getElementById('sideDefSpeed').value)||2;
+            hwConfig.sideLedIndexArray = document.getElementById('sideArray').value;
+            hwConfig.logoLedEnabled = document.getElementById('logoEn').value === 'true';
+            hwConfig.logoLedCount = parseInt(document.getElementById('logoCount').value)||0;
+            hwConfig.logoLedMaxBrightness = parseInt(document.getElementById('logoMaxBright').value)||255;
+            hwConfig.logoLedDefaultBrightness = parseInt(document.getElementById('logoDefBright').value)||128;
+            hwConfig.logoLedMaxSpeed = parseInt(document.getElementById('logoMaxSpeed').value)||5;
+            hwConfig.logoLedDefaultSpeed = parseInt(document.getElementById('logoDefSpeed').value)||2;
+            hwConfig.logoLedIndexArray = document.getElementById('logoArray').value;
+            alert('硬件配置已保存');
+        });
+    }
+
+    function exportJSON() {
+        const output = { hwConfig, keys: keys.map(k=>({...k})) };
+        const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(output,null,2)],{type:"application/json"})); a.download="kb_full_config.json"; a.click(); URL.revokeObjectURL(a.href);
+    }
+    function importJSON() {
+        const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json'; inp.onchange=e=>{ const f=e.target.files[0]; if(!f) return; const reader=new FileReader(); reader.onload=ev=>{ try{ const json=JSON.parse(ev.target.result); if(json.keys) keys=json.keys; if(json.hwConfig) hwConfig=json.hwConfig; renderKeyboard(); renderHwConfig(); renderKeyEditor(); alert('导入成功'); }catch(err){ alert('失败'); } }; reader.readAsText(f); }; inp.click();
+    }
+
+    function loadPreset() { keys=[]; keys=getPresetLayout(); selectedKeyIds.clear(); renderKeyboard(); renderKeyEditor(); }
+    function setActiveLayer(l){ activeLayer=l; renderKeyboard(); document.querySelectorAll('.layer-btn').forEach((btn,i)=>{ if(i===l) btn.classList.add('active'); else btn.classList.remove('active'); }); }
+    function init() {
+        keyboardGridDiv = document.getElementById('keyboardGrid'); selectedKeyEditorDiv = document.getElementById('selectedKeyEditor'); hwConfigForm = document.getElementById('hwConfigForm');
+        loadPreset();
+        document.getElementById('addKeyBtn').onclick = addKeyAfterSelected;
+        document.getElementById('addEncoderBtn').onclick = addEncoder;
+        document.getElementById('deleteKeyBtn').onclick = deleteSelectedKeys;
+        document.getElementById('exportBtn').onclick = exportJSON;
+        document.getElementById('importBtn').onclick = importJSON;
+        document.getElementById('loadPresetBtn').onclick = loadPreset;
+        document.getElementById('reassignRgbBtn').onclick = reassignRgbIndices;
+        for(let i=0;i<4;i++) document.getElementById(`layerBtn${i}`).onclick = () => setActiveLayer(i);
+        setActiveLayer(0);
+        renderHwConfig();
+    }
+    window.onload = init;
+</script>
+</body>
+</html>
